@@ -71,7 +71,9 @@ import org.apache.http.util.Args;
  * <a href="http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html#init%28javax.net.ssl.KeyManager[],%20javax.net.ssl.TrustManager[],%20java.security.SecureRandom%29">
  * SSLContext.html#init
  * </a>
- *
+ * <p>
+ * TODO Specify which Oracle JSSE versions the above has been verified.
+ *  </p>
  * @since 4.4
  */
 public class SSLContextBuilder {
@@ -154,6 +156,18 @@ public class SSLContextBuilder {
     }
 
     /**
+     * Sets the key store type.
+     *
+     * @param keyStoreType
+     *            the SSLkey store type. See
+     *            the KeyStore section in the <a href=
+     *            "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore">Java
+     *            Cryptography Architecture Standard Algorithm Name
+     *            Documentation</a> for more information.
+     * @return this builder
+     * @see <a href=
+     *      "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore">Java
+     *      Cryptography Architecture Standard Algorithm Name Documentation</a>
      * @since 4.4.7
      */
     public SSLContextBuilder setKeyStoreType(final String keyStoreType) {
@@ -162,27 +176,51 @@ public class SSLContextBuilder {
     }
 
     /**
+     * Sets the key manager factory algorithm name.
+     *
+     * @param keyManagerFactoryAlgorithm
+     *            the key manager factory algorithm name of the requested protocol. See
+     *            the KeyManagerFactory section in the <a href=
+     *            "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyManagerFactory">Java
+     *            Cryptography Architecture Standard Algorithm Name
+     *            Documentation</a> for more information.
+     * @return this builder
+     * @see <a href=
+     *      "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyManagerFactory">Java
+     *      Cryptography Architecture Standard Algorithm Name Documentation</a>
      * @since 4.4.7
      */
     public SSLContextBuilder setKeyManagerFactoryAlgorithm(final String keyManagerFactoryAlgorithm) {
-        this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm == null ? KeyManagerFactory.getDefaultAlgorithm()
-                : keyManagerFactoryAlgorithm;
+        this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
         return this;
     }
 
     /**
+     * Sets the trust manager factory algorithm name.
+     *
+     * @param trustManagerFactoryAlgorithm
+     *            the trust manager algorithm name of the requested protocol. See
+     *            the TrustManagerFactory section in the <a href=
+     *            "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#TrustManagerFactory">Java
+     *            Cryptography Architecture Standard Algorithm Name
+     *            Documentation</a> for more information.
+     * @return this builder
+     * @see <a href=
+     *      "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#TrustManagerFactory">Java
+     *      Cryptography Architecture Standard Algorithm Name Documentation</a>
      * @since 4.4.7
      */
     public SSLContextBuilder setTrustManagerFactoryAlgorithm(final String trustManagerFactoryAlgorithm) {
-        this.trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm == null ? TrustManagerFactory.getDefaultAlgorithm()
-                : trustManagerFactoryAlgorithm;
+        this.trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm;
         return this;
     }
 
     public SSLContextBuilder loadTrustMaterial(
             final KeyStore truststore,
             final TrustStrategy trustStrategy) throws NoSuchAlgorithmException, KeyStoreException {
-        final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm);
+        final TrustManagerFactory tmfactory = TrustManagerFactory
+                .getInstance(trustManagerFactoryAlgorithm == null ? TrustManagerFactory.getDefaultAlgorithm()
+                        : trustManagerFactoryAlgorithm);
         tmfactory.init(truststore);
         final TrustManager[] tms = tmfactory.getTrustManagers();
         if (tms != null) {
@@ -190,8 +228,7 @@ public class SSLContextBuilder {
                 for (int i = 0; i < tms.length; i++) {
                     final TrustManager tm = tms[i];
                     if (tm instanceof X509TrustManager) {
-                        tms[i] = new TrustManagerDelegate(
-                                (X509TrustManager) tm, trustStrategy);
+                        tms[i] = new TrustManagerDelegate((X509TrustManager) tm, trustStrategy);
                     }
                 }
             }
@@ -259,9 +296,11 @@ public class SSLContextBuilder {
             final char[] keyPassword,
             final PrivateKeyStrategy aliasStrategy)
             throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
-        final KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm);
+        final KeyManagerFactory kmfactory = KeyManagerFactory
+                .getInstance(keyManagerFactoryAlgorithm == null ? KeyManagerFactory.getDefaultAlgorithm()
+                        : keyManagerFactoryAlgorithm);
         kmfactory.init(keystore, keyPassword);
-        final KeyManager[] kms =  kmfactory.getKeyManagers();
+        final KeyManager[] kms = kmfactory.getKeyManagers();
         if (kms != null) {
             if (aliasStrategy != null) {
                 for (int i = 0; i < kms.length; i++) {
